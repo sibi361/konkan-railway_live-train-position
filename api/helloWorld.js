@@ -1,11 +1,11 @@
 import playwright from "playwright-aws-lambda";
+import { devices } from "playwright-core";
 
 export default async (req, res) => {
     const data = await (async () => {
-        // const browser = await puppeteer.launch({ headless: "true" });
-        let browser = null;
-        browser = await playwright.launchChromium({ headless: true });
-        const context = await browser.newContext();
+        const browser = await playwright.launchChromium({ headless: true });
+        const UA = devices["Desktop Firefox"];
+        const context = await browser.newContext(UA);
         const page = await context.newPage();
 
         // testing
