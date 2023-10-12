@@ -8,6 +8,15 @@ export default async (req, res) => {
         const context = await browser.newContext(UA);
         const page = await context.newPage();
 
+        // disable assets loading to save bandwidth
+        page.route("**/*", (route) => {
+            if (route.request().resourceType() == "document") route.continue();
+            else {
+                route.abort();
+                console.log("BLOCK");
+            }
+        });
+
         // testing
         await page.goto("https://icanhazip.com");
 
