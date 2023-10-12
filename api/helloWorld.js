@@ -11,10 +11,7 @@ export default async (req, res) => {
         // disable assets loading to save bandwidth
         page.route("**/*", (route) => {
             if (route.request().resourceType() == "document") route.continue();
-            else {
-                route.abort();
-                console.log("BLOCK");
-            }
+            else route.abort();
         });
 
         // testing
