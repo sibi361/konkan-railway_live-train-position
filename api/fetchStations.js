@@ -1,7 +1,7 @@
 import playwright from "playwright-aws-lambda";
 import { devices } from "playwright-core";
 
-import env from "../api_static/constants.js";
+import env from "./_constants.js";
 
 export default async (req, res) => {
     if (env.DEBUG)
