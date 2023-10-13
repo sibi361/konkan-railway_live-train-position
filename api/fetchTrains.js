@@ -1,12 +1,9 @@
 import playwright from "playwright-aws-lambda";
 import { devices } from "playwright-core";
 
-import env from "../api_static/constants.js";
+import env from "./_constants.js";
 
 export default async (req, res) => {
-    if (env.DEBUG)
-        console.log("fetchTrains: Fetching trains data from upstream");
-
     const data = await (async () => {
         const browser = await playwright.launchChromium(env.PLAYWRIGHT_OPTS);
         const UA = devices[env.PLAYWRIGHT_DEVICE];
@@ -140,7 +137,7 @@ export default async (req, res) => {
         await browser.close();
         if (env.DEBUG)
             console.log(
-                `fetchData: Updated trains count: ${response.count_trains}`
+                `fetchTrains: Updated trains count: ${response.count_trains}`
             );
 
         return response;
