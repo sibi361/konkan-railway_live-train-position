@@ -111,5 +111,5 @@ export default async (req, res) => {
         return response;
     })();
 
-    res.send({ ...data });
+    res.send({ ...data, success: true });
 };
