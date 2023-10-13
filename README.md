@@ -6,7 +6,7 @@ Based on [sibi361/konkan-railway_api](https://github.com/sibi361/konkan-railway_
 
 ## Available Endpoints
 
-All endpoints return JSON and serve at http://localhost:3000/api/v2/ by default.
+All endpoints return JSON and serve at http://localhost:3000/ by default.
 
 - `/api/fetchTrains/`
     Returns live status about all the trains currently moving on the Konkan Railway
