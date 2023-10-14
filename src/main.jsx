@@ -1,24 +1,15 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
 import "./assets/styles.css";
+import env from "../api/_constants.js";
 
 ReactDOM.createRoot(document.getElementById("root")).render(
     <React.StrictMode>
         <div>
-            <h2>Konkan Railway API</h2>
-            <p className="read-the-docs">
-                API is available at&nbsp;
-                <a href="./api/" target="_blank" rel="noreferrer">
-                    /api/
-                </a>
-            </p>
+            <h1>Konkan Railway Live Train Position</h1>
             <p className="read-the-docs">
                 Please visit the&nbsp;
-                <a
-                    href="https://github.com/sibi361/konkan-railway_api"
-                    target="_blank"
-                    rel="noreferrer"
-                >
+                <a href={env.REPO_URL} target="_blank" rel="noreferrer">
                     Github Repository
                 </a>
                 &nbsp;for API documentation
