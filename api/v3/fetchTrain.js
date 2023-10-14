@@ -1,4 +1,4 @@
-import env from "./_constants.js";
+import env from "../_constants.js";
 
 export default async (req, res) => {
     if (env.DEBUG)
@@ -6,13 +6,13 @@ export default async (req, res) => {
 
     const serverHostname = req.rawHeaders[1];
     const upstreamCacheRequest = await fetch(
-        `http://${serverHostname}/api/fetchTrains`
+        `http://${serverHostname}/api/v${env.API_VERSION}/fetchTrains`
     );
     const trainsData = await upstreamCacheRequest.json();
 
     const keys = Object.keys(trainsData?.trains);
 
-    const trainNo = req.query.trainNo;
+    const trainNo = req.query.tno;
     if (!trainNo) {
         res.status(400);
         res.send({

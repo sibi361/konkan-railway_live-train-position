@@ -15,7 +15,7 @@ All endpoints return JSON and serve at http://localhost:3000/ by default.
 
     TODO: Appending `?latest` to the URL will trigger a manual update from the upstream
 
-- `/api/fetchTrain?trainNo=<TRAIN-NUMBER>`
+- `/api/fetchTrain?tno=<TRAIN-NUMBER>`
     Returns an object containing information about the queried train such as
         - most recently touched station
         - arrived/departed time from that station
@@ -26,7 +26,7 @@ All endpoints return JSON and serve at http://localhost:3000/ by default.
 - `/api/fetchStations/`
     Returns an object containing all the stations on the Konkan Railway route
 
-- `/api/fetchStation?station=<STATION-PLACE-NAME>`
+- `/api/fetchStation?name=<STATION-PLACE-NAME>`
      Returns an object containing information about the queried station such as
         - type i.e. big station or small station
         - state

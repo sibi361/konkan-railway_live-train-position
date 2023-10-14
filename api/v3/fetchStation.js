@@ -1,15 +1,15 @@
-import env from "./_constants.js";
+import env from "../_constants.js";
 
 export default async (req, res) => {
     const serverHostname = req.rawHeaders[1];
     const upstreamCacheRequest = await fetch(
-        `http://${serverHostname}/api/fetchStations`
+        `http://${serverHostname}/api/v${env.API_VERSION}/fetchStations`
     );
     const stationsData = await upstreamCacheRequest.json();
 
     const keys = Object.keys(stationsData?.stations);
 
-    const stationName = req.query.station?.toLocaleLowerCase();
+    const stationName = req.query.name?.toLocaleLowerCase();
     if (!stationName) {
         res.status(400);
         res.send({
