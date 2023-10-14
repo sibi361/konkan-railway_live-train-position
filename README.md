@@ -1,6 +1,8 @@
 # konkan-railway_train-position
 
-This API scrapes the [Konkan Railway Current Train Position](https://konkanrailway.com/VisualTrain/) website, converts the essential data into JSON and uses it to serve the various endpoints.
+This project provides a lightweight yet feature-rich, alternative frontend to the the [Konkan Railway Current Train Position](https://konkanrailway.com/VisualTrain/) website.
+
+The frontend is powered by ReactJS and the backend runs on Vercel Serverless functions.
 
 Based on [sibi361/konkan-railway_api](https://github.com/sibi361/konkan-railway_api).
 
