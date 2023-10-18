@@ -1,11 +1,23 @@
 import playwright from "playwright-aws-lambda";
 import { devices } from "playwright-core";
 import { createClient } from "@vercel/postgres";
-import { env, handleDBError, prepareJsonForDb } from "../_constants.js";
+import {
+    env,
+    authCheckScraper,
+    handleUnauthorizedRequest,
+    handleDBError,
+    prepareJsonForDb,
+} from "../_constants.js";
 
 const SCRIPT_NAME = "scrapeStations";
 
 export default async (req, res) => {
+    const is_authorized = await authCheckScraper(req);
+    if (!is_authorized) {
+        handleUnauthorizedRequest(res);
+        return;
+    }
+
     if (env.DEBUG)
         console.log(`${SCRIPT_NAME}: Fetching stations data from upstream`);
 

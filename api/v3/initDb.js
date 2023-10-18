@@ -1,19 +1,10 @@
 import { createClient } from "@vercel/postgres";
 import {
     env,
+    authCheckInitDb,
     handleUnauthorizedRequest,
     handleDBError,
 } from "../_constants.js";
-
-const authCheckInitDb = async (req) => {
-    if (req.headers["x-vercel-signature"]) {
-        return (
-            req.headers["x-vercel-signature"] ===
-            process.env[env.VERCEL_ENVS.PASSWORD_INIT_DB]
-        );
-    }
-    return false;
-};
 
 export default async (req, res) => {
     const is_authorized = await authCheckInitDb(req);

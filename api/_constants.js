@@ -20,7 +20,7 @@ export const env = {
     },
     PLAYWRIGHT_DEVICE: "Desktop Firefox",
     SERVER_ERROR_MESSAGE: "Server overloaded. Please wait.",
-    UNAUTHORIZED_ERROR_MESSAGE: "Unauthorized request: API Key not supplied",
+    UNAUTHORIZED_ERROR_MESSAGE: "Unauthorized request: Token not supplied",
 };
 
 env.DB = {
@@ -32,7 +32,30 @@ env.DB = {
 
 env.VERCEL_ENVS = {
     PASSWORD_INIT_DB: "SECRET_INIT_DB",
+    HEADER_NAME_WEBHOOK_INIT_DB: "x-vercel-signature",
     PASSWORD_UPSTREAM_UPDATE: "SECRET_UPSTREAM_UPDATE",
+};
+
+export const authCheckInitDb = async (req) => {
+    if (
+        process.env[env.VERCEL_ENVS.PASSWORD_INIT_DB] &&
+        req.headers[env.VERCEL_ENVS.HEADER_NAME_WEBHOOK_INIT_DB]
+    ) {
+        return (
+            process.env[env.VERCEL_ENVS.PASSWORD_INIT_DB] ===
+            req.headers[env.VERCEL_ENVS.HEADER_NAME_WEBHOOK_INIT_DB]
+        );
+    }
+    return false;
+};
+
+export const authCheckScraper = async (req) => {
+    if (process.env[env.VERCEL_ENVS.PASSWORD_UPSTREAM_UPDATE]) {
+        const token = req.headers.authorization?.split(" ")[1];
+        if (!token) return false;
+        return process.env[env.VERCEL_ENVS.PASSWORD_UPSTREAM_UPDATE] === token;
+    }
+    return false;
 };
 
 export const handleUnauthorizedRequest = (response) => {
