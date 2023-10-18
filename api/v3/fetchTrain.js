@@ -1,9 +1,8 @@
-import env from "../_constants.js";
+import { env } from "../_constants.js";
+
+const SCRIPT_NAME = "fetchTrain";
 
 export default async (req, res) => {
-    if (env.DEBUG)
-        console.log("fetchTrains: Fetching trains data from upstream");
-
     const serverHostname = req.rawHeaders[1];
     const upstreamCacheRequest = await fetch(
         `http://${serverHostname}/api/v${env.API_VERSION}/fetchTrains`
@@ -25,7 +24,7 @@ export default async (req, res) => {
         return;
     }
 
-    if (env.DEBUG) console.log(`Fetching train: ${trainNo}`);
+    if (env.DEBUG) console.log(`${SCRIPT_NAME}: Fetching train: ${trainNo}`);
 
     if (trainsData?.trains)
         if (keys.includes(trainNo))
@@ -38,14 +37,14 @@ export default async (req, res) => {
             res.status(404);
             res.send({
                 lastUpdatedAt: trainsData?.lastUpdatedAt,
-                message: `Train number "${trainNo}" NOT found. It might not have started yet.`,
+                message: `Error:Train number "${trainNo}" NOT found. It might not have started yet.`,
                 success: false,
             });
         }
     else {
         res.status(503);
         res.send({
-            message: "Server is retrieving trains. Please wait.",
+            message: env.SERVER_ERROR_MESSAGE,
             success: false,
         });
     }

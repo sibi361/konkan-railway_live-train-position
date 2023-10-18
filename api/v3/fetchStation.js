@@ -1,4 +1,6 @@
-import env from "../_constants.js";
+import { env } from "../_constants.js";
+
+const SCRIPT_NAME = "fetchStation";
 
 export default async (req, res) => {
     const serverHostname = req.rawHeaders[1];
@@ -13,8 +15,8 @@ export default async (req, res) => {
     if (!stationName) {
         res.status(400);
         res.send({
-            message: 'Error: "station" parameter not provided',
-            example: `/api/fetchStation?station=${
+            message: 'Error: "name" parameter not provided',
+            example: `/api/fetchStation?name=${
                 keys[Math.floor(Math.random() * keys.length)]
             }`,
             success: false,
@@ -22,7 +24,8 @@ export default async (req, res) => {
         return;
     }
 
-    if (env.DEBUG) console.log(`Fetching station: ${stationName}`);
+    if (env.DEBUG)
+        console.log(`${SCRIPT_NAME}: Fetching station: ${stationName}`);
 
     if (stationsData?.stations) {
         const key = keys.find((station) => station.includes(stationName));
@@ -34,14 +37,14 @@ export default async (req, res) => {
         else {
             res.status(404);
             res.send({
-                message: `Station named "${stationName}" NOT found.`,
+                message: `Error: Station named "${stationName}" NOT found.`,
                 success: false,
             });
         }
     } else {
         res.status(503);
         res.send({
-            message: "Server is retrieving stations. Please wait.",
+            message: env.SERVER_ERROR_MESSAGE,
             success: false,
         });
     }
