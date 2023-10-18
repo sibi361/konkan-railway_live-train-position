@@ -163,7 +163,7 @@ export default async (req, res) => {
         console.log(`# ERROR in ${SCRIPT_NAME}: ${e}`);
         if (env.DEBUG) res.send({ error: e, success: false });
         else {
-            res.status(503);
+            res.status(500);
             res.send({ message: env.SERVER_ERROR_MESSAGE, success: false });
         }
         return;

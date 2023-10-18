@@ -17,7 +17,7 @@ export default async (req, res) => {
     const data = JSON.parse(result.rows[0]?.val);
 
     if (Object.keys(data).length == 0) {
-        res.status(503);
+        res.status(500);
         res.send({
             message: env.SERVER_ERROR_MESSAGE,
             success: false,

@@ -42,7 +42,7 @@ export default async (req, res) => {
             });
         }
     } else {
-        res.status(503);
+        res.status(500);
         res.send({
             message: env.SERVER_ERROR_MESSAGE,
             success: false,
