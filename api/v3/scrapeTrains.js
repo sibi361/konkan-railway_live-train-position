@@ -49,9 +49,9 @@ export default async (req, res) => {
                     `${timeSplit[0].split("/").reverse().join("-")}` +
                     `T${timeSplit[1]}`;
 
-                const currentTimeStamp = new Date()
-                    .toLocaleString("sv")
-                    .replace(" ", "T");
+                const currentTimeStamp = new Date(
+                    Date.parse(new Date()) + 19800000
+                ).toISOString();
 
                 const data = {
                     lastFetchedAt: currentTimeStamp,
