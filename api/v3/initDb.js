@@ -42,15 +42,16 @@ export default async (req, res) => {
         }`
     )
         .then((response) => response.json())
-        .then((json) =>
-            json.success
-                ? {}
-                : res.send({
-                      message:
-                          "Database initialized but initial stations fetch failed",
-                      success: false,
-                  })
-        );
+        .then((json) => {
+            if (!json.success) {
+                res.send({
+                    message:
+                        "Database initialized but initial stations fetch failed",
+                    success: false,
+                });
+                return;
+            }
+        });
 
     // fetch trains
     await fetch(
@@ -59,17 +60,20 @@ export default async (req, res) => {
         }`
     )
         .then((response) => response.json())
-        .then((json) =>
-            json.success
-                ? res.send({
-                      message:
-                          "Database initialized and inital fetch successful",
-                      success: true,
-                  })
-                : res.send({
-                      message:
-                          "Database initialized but initial trains fetch failed",
-                      success: false,
-                  })
-        );
+        .then((json) => {
+            if (json.success) {
+                res.send({
+                    message: "Database initialized and inital fetch successful",
+                    success: true,
+                });
+                return;
+            } else {
+                res.send({
+                    message:
+                        "Database initialized but initial trains fetch failed",
+                    success: false,
+                });
+                return;
+            }
+        });
 };

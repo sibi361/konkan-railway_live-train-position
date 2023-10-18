@@ -51,7 +51,9 @@ export default async (req, res) => {
 
                 const currentTimeStamp = new Date(
                     Date.parse(new Date()) + 19800000
-                ).toISOString();
+                )
+                    .toISOString()
+                    .slice(0, 19);
 
                 const data = {
                     lastFetchedAt: currentTimeStamp,
