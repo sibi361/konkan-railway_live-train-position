@@ -51,7 +51,12 @@ export const authCheckInitDb = async (req) => {
 
 export const authCheckScraper = async (req) => {
     if (process.env[env.VERCEL_ENVS.PASSWORD_UPSTREAM_UPDATE]) {
-        const token = req.headers.authorization?.split(" ")[1];
+        // const token = req.headers.authorization?.split(" ")[1];
+        const url = req.url;
+        const token = url
+            .slice(url.indexOf("?") + 1)
+            .split("&")[0]
+            .split("=")[1];
         if (!token) return false;
         return process.env[env.VERCEL_ENVS.PASSWORD_UPSTREAM_UPDATE] === token;
     }
