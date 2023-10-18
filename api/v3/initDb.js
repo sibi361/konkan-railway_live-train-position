@@ -1,10 +1,10 @@
 import { createClient } from "@vercel/postgres";
+import env from "../_constants.js";
 import {
-    env,
     authCheckInitDb,
     handleUnauthorizedRequest,
     handleDBError,
-} from "../_constants.js";
+} from "../_utils.js";
 
 export default async (req, res) => {
     const is_authorized = await authCheckInitDb(req);
@@ -39,7 +39,7 @@ export default async (req, res) => {
 
     const serverUrl = req.rawHeaders[1];
     await fetch(
-        `https://${serverUrl}/scrapeStations?token=${
+        `http://${serverUrl}/api/v${env.API_VERSION}/scrapeStations?token=${
             process.env[env.VERCEL_ENVS.PASSWORD_UPSTREAM_UPDATE]
         }`
     )

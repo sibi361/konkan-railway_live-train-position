@@ -1,13 +1,13 @@
 import playwright from "playwright-aws-lambda";
 import { devices } from "playwright-core";
 import { createClient } from "@vercel/postgres";
+import env from "../_constants.js";
 import {
-    env,
     authCheckScraper,
     handleUnauthorizedRequest,
     handleDBError,
     prepareJsonForDb,
-} from "../_constants.js";
+} from "../_utils.js";
 
 const SCRIPT_NAME = "scrapeStations";
 

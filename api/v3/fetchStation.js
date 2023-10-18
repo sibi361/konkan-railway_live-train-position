@@ -1,5 +1,6 @@
 import { createClient } from "@vercel/postgres";
-import { env, handleDBError } from "../_constants.js";
+import env from "../_constants.js";
+import { handleDBError } from "../_utils.js";
 
 const SCRIPT_NAME = "fetchStation";
 
