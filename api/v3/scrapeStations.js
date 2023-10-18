@@ -145,16 +145,12 @@ export default async (req, res) => {
     const client = createClient();
     await client.connect();
 
-    let query;
     try {
-        query = `UPDATE ${env.DB.TABLE_NAME} SET VAL = '${prepareJsonForDb({
-            TIME: Date.now(),
-        })}' WHERE KEY = '${env.DB.ROW_LAST_UPDATED_TIME}';`;
-        await client.query(query);
-
-        query = `UPDATE ${env.DB.TABLE_NAME} SET VAL = '${prepareJsonForDb(
-            data
-        )}' WHERE KEY = '${env.DB.ROW_STATIONS}';`;
+        const query = `UPDATE ${
+            env.DB.TABLE_NAME
+        } SET VAL = '${prepareJsonForDb(data)}' WHERE KEY = '${
+            env.DB.ROW_STATIONS
+        }';`;
         await client.query(query);
     } catch (e) {
         handleDBError(res, e);

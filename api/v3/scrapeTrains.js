@@ -49,7 +49,12 @@ export default async (req, res) => {
                     `${timeSplit[0].split("/").reverse().join("-")}` +
                     `T${timeSplit[1]}`;
 
-                const data = { lastUpdatedAt: timeStamp };
+                const currentTimeStamp = new Date().toISOString().slice(0, 19);
+
+                const data = {
+                    lastFetchedAt: currentTimeStamp,
+                    lastUpdateAtUpstream: timeStamp,
+                };
 
                 const trainDataArr = document.querySelectorAll(
                     'input[type="hidden"][name^="trainData"]'
@@ -184,16 +189,12 @@ export default async (req, res) => {
     const client = createClient();
     await client.connect();
 
-    let query;
     try {
-        query = `UPDATE ${env.DB.TABLE_NAME} SET VAL = '${prepareJsonForDb({
-            TIME: Date.now(),
-        })}' WHERE KEY = '${env.DB.ROW_LAST_UPDATED_TIME}';`;
-        await client.query(query);
-
-        query = `UPDATE ${env.DB.TABLE_NAME} SET VAL = '${prepareJsonForDb(
-            data
-        )}' WHERE KEY = '${env.DB.ROW_TRAINS}';`;
+        const query = `UPDATE ${
+            env.DB.TABLE_NAME
+        } SET VAL = '${prepareJsonForDb(data)}' WHERE KEY = '${
+            env.DB.ROW_TRAINS
+        }';`;
         await client.query(query);
     } catch (e) {
         handleDBError(res, e);

@@ -24,9 +24,6 @@ export default async (req, res) => {
         query = `CREATE TABLE IF NOT EXISTS ${env.DB.TABLE_NAME} (KEY TEXT UNIQUE, VAL TEXT);`;
         await client.query(query);
 
-        query = `INSERT INTO ${env.DB.TABLE_NAME} VALUES ('${env.DB.ROW_LAST_UPDATED_TIME}','{}');`;
-        await client.query(query);
-
         query = `INSERT INTO ${env.DB.TABLE_NAME} VALUES ('${env.DB.ROW_STATIONS}','{}');`;
         await client.query(query);
 
