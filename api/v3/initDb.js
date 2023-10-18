@@ -37,8 +37,22 @@ export default async (req, res) => {
         return;
     }
 
-    res.send({
-        message: "Database reset and initialized",
-        success: true,
-    });
+    const serverUrl = req.rawHeaders[1];
+    await fetch(
+        `https://${serverUrl}/scrapeStations?token=${
+            process.env[env.VERCEL_ENVS.PASSWORD_UPSTREAM_UPDATE]
+        }`
+    )
+        .then((response) => response.json())
+        .then((json) =>
+            json.success
+                ? res.send({
+                      message: "Database initialized",
+                      success: true,
+                  })
+                : res.send({
+                      message: "Database initialized but stations fetch failed",
+                      success: false,
+                  })
+        );
 };
