@@ -20,6 +20,7 @@ export const env = {
     },
     PLAYWRIGHT_DEVICE: "Desktop Firefox",
     SERVER_ERROR_MESSAGE: "Server overloaded. Please wait.",
+    UNAUTHORIZED_ERROR_MESSAGE: "Unauthorized request: API Key not supplied",
 };
 
 env.DB = {
@@ -29,11 +30,25 @@ env.DB = {
     ROW_TRAINS: "JSON_DATA_TRAINS",
 };
 
+env.VERCEL_ENVS = {
+    PASSWORD_INIT_DB: "SECRET_INIT_DB",
+    PASSWORD_UPSTREAM_UPDATE: "SECRET_UPSTREAM_UPDATE",
+};
+
+export const handleUnauthorizedRequest = (response) => {
+    if (env.DEBUG)
+        console.log(
+            "# handleUnauthorizedRequest: Blocked unauthorized request"
+        );
+    response.status(403);
+    response.send({ message: env.UNAUTHORIZED_ERROR_MESSAGE, success: false });
+};
+
 export const handleDBError = (response, errorMsg) => {
     response.status(500);
     console.log(`# DB Error: ${errorMsg}`);
     if (env.DEBUG) response.send({ message: errorMsg, success: false });
-    else response.send({ error: env.SERVER_ERROR_MESSAGE, success: false });
+    else response.send({ message: env.SERVER_ERROR_MESSAGE, success: false });
 };
 
 export const prepareJsonForDb = (json) => {
