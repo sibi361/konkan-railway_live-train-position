@@ -32,10 +32,10 @@ env.DB = {
 export const handleDBError = (response, errorMsg) => {
     response.status(500);
     console.log(`# DB Error: ${errorMsg}`);
-    if (env.DEBUG) return response.send({ error: errorMsg, success: false });
-    else return response.send({ success: false });
+    if (env.DEBUG) response.send({ message: errorMsg, success: false });
+    else response.send({ error: env.SERVER_ERROR_MESSAGE, success: false });
 };
 
-export const prepareJson = (json) => {
+export const prepareJsonForDb = (json) => {
     return JSON.stringify(json).toString().replaceAll("'", "");
 };

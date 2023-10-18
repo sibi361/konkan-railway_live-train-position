@@ -1,7 +1,7 @@
 import playwright from "playwright-aws-lambda";
 import { devices } from "playwright-core";
 import { createClient } from "@vercel/postgres";
-import { env, handleDBError, prepareJson } from "../_constants.js";
+import { env, handleDBError, prepareJsonForDb } from "../_constants.js";
 
 const SCRIPT_NAME = "scrapeStations";
 
@@ -123,26 +123,26 @@ export default async (req, res) => {
     } catch (e) {
         console.log(`# ERROR in ${SCRIPT_NAME}: ${e}`);
         if (env.DEBUG) res.send({ error: e, success: false });
-        else res.send({ success: false });
+        else res.send({ message: env.SERVER_ERROR_MESSAGE, success: false });
         return;
     }
 
     const client = createClient();
     await client.connect();
 
-    let query, cleaned_data;
+    let query;
     try {
-        query = `UPDATE ${env.DB.TABLE_NAME} SET VAL = '${JSON.stringify({
+        query = `UPDATE ${env.DB.TABLE_NAME} SET VAL = '${prepareJsonForDb({
             TIME: Date.now(),
         })}' WHERE KEY = '${env.DB.ROW_LAST_UPDATED_TIME}';`;
         await client.query(query);
 
-        query = `UPDATE ${env.DB.TABLE_NAME} SET VAL = '${prepareJson(
+        query = `UPDATE ${env.DB.TABLE_NAME} SET VAL = '${prepareJsonForDb(
             data
         )}' WHERE KEY = '${env.DB.ROW_STATIONS}';`;
         await client.query(query);
     } catch (e) {
-        handleDBError(res, e, cleaned_data);
+        handleDBError(res, e);
         return;
     }
 

@@ -14,8 +14,16 @@ export default async (req, res) => {
         return;
     }
 
-    res.send({
-        ...JSON.parse(result.rows[0]?.val),
-        success: true,
-    });
+    const data = JSON.parse(result.rows[0]?.val);
+
+    if (Object.keys(data).length == 0)
+        res.send({
+            message: env.SERVER_ERROR_MESSAGE,
+            success: false,
+        });
+    else
+        res.send({
+            ...data,
+            success: true,
+        });
 };
