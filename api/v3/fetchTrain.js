@@ -39,14 +39,15 @@ export default async (req, res) => {
     if (trainsData?.trains)
         if (keys.includes(trainNo))
             res.send({
-                lastUpdatedAt: trainsData.lastUpdatedAt,
+                lastFetchedAt: trainsData.lastFetchedAt,
+                lastUpdateAtUpstream: trainsData.lastUpdateAtUpstream,
                 [trainNo]: trainsData.trains[trainNo],
                 success: true,
             });
         else {
             res.status(404);
             res.send({
-                lastUpdatedAt: trainsData?.lastUpdatedAt,
+                lastUpdateAtUpstream: trainsData.lastUpdateAtUpstream,
                 message: `Error:Train number "${trainNo}" NOT found. It might not have started yet.`,
                 success: false,
             });
