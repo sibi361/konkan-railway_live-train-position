@@ -1,9 +1,7 @@
 import playwright from "playwright-aws-lambda";
 import { devices } from "playwright-core";
 import { createClient } from "@vercel/postgres";
-
-import env from "../_constants.js";
-import { handleDBError } from "../_constants.js";
+import { env, handleDBError, prepareJson } from "../_constants.js";
 
 const SCRIPT_NAME = "scrapeStations";
 
@@ -132,12 +130,19 @@ export default async (req, res) => {
     const client = createClient();
     await client.connect();
 
+    let query, cleaned_data;
     try {
-        let obj = { TIME: Date.now() };
-        await client.sql`UPDATE TB1 SET VAL = ${obj}::JSONB WHERE KEY = 'DB_LAST_UPDATED';`;
-        await client.sql`UPDATE TB1 SET VAL = ${data}::JSONB WHERE KEY = 'JSON_DATA_STATIONS';`;
+        query = `UPDATE ${env.DB.TABLE_NAME} SET VAL = '${JSON.stringify({
+            TIME: Date.now(),
+        })}' WHERE KEY = '${env.DB.ROW_LAST_UPDATED_TIME}';`;
+        await client.query(query);
+
+        query = `UPDATE ${env.DB.TABLE_NAME} SET VAL = '${prepareJson(
+            data
+        )}' WHERE KEY = '${env.DB.ROW_STATIONS}';`;
+        await client.query(query);
     } catch (e) {
-        handleDBError(res, e);
+        handleDBError(res, e, cleaned_data);
         return;
     }
 

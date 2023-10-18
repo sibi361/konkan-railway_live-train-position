@@ -1,4 +1,4 @@
-const env = {
+export const env = {
     DEBUG: true,
     UPSTREAM_REFRESH_INTERVAL: 300,
     UPSTREAM_URL: "https://konkanrailway.com/VisualTrain/",
@@ -22,11 +22,20 @@ const env = {
     SERVER_ERROR_MESSAGE: "Server overloaded. Please wait.",
 };
 
-export default env;
+env.DB = {
+    TABLE_NAME: `KONKAN_RAILWAY_API_V${env.API_VERSION}_TB1`,
+    ROW_LAST_UPDATED_TIME: "DB_LAST_UPDATED",
+    ROW_STATIONS: "JSON_DATA_STATIONS",
+    ROW_TRAINS: "JSON_DATA_TRAINS",
+};
 
 export const handleDBError = (response, errorMsg) => {
     response.status(500);
     console.log(`# DB Error: ${errorMsg}`);
     if (env.DEBUG) return response.send({ error: errorMsg, success: false });
     else return response.send({ success: false });
+};
+
+export const prepareJson = (json) => {
+    return JSON.stringify(json).toString().replaceAll("'", "");
 };

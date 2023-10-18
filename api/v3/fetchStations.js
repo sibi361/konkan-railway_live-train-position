@@ -1,5 +1,5 @@
 import { createClient } from "@vercel/postgres";
-import { handleDBError } from "../_constants.js";
+import { env, handleDBError } from "../_constants.js";
 
 export default async (req, res) => {
     const client = createClient();
@@ -7,12 +7,15 @@ export default async (req, res) => {
 
     let result = {};
     try {
-        result =
-            await client.sql`SELECT VAL FROM TB1 WHERE KEY = 'JSON_DATA_STATIONS';`;
+        const query = `SELECT VAL FROM ${env.DB.TABLE_NAME} WHERE KEY = '${env.DB.ROW_STATIONS}';`;
+        result = await client.query(query);
     } catch (e) {
         handleDBError(res, e);
         return;
     }
 
-    res.send({ ...result.rows[0]["val"], success: true });
+    res.send({
+        ...JSON.parse(result.rows[0]?.val),
+        success: true,
+    });
 };
