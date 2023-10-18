@@ -1,13 +1,22 @@
-import { env } from "../_constants.js";
+import { createClient } from "@vercel/postgres";
+import { env, handleDBError } from "../_constants.js";
 
 const SCRIPT_NAME = "fetchStation";
 
 export default async (req, res) => {
-    const serverHostname = req.rawHeaders[1];
-    const upstreamCacheRequest = await fetch(
-        `http://${serverHostname}/api/v${env.API_VERSION}/fetchStations`
-    );
-    const stationsData = await upstreamCacheRequest.json();
+    const client = createClient();
+    await client.connect();
+
+    let result = {};
+    try {
+        const query = `SELECT VAL FROM ${env.DB.TABLE_NAME} WHERE KEY = '${env.DB.ROW_STATIONS}';`;
+        result = await client.query(query);
+    } catch (e) {
+        handleDBError(res, e);
+        return;
+    }
+
+    const stationsData = JSON.parse(result.rows[0]?.val);
 
     const keys = Object.keys(stationsData?.stations);
 

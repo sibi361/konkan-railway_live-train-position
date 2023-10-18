@@ -1,13 +1,22 @@
-import { env } from "../_constants.js";
+import { createClient } from "@vercel/postgres";
+import { env, handleDBError } from "../_constants.js";
 
 const SCRIPT_NAME = "fetchTrain";
 
 export default async (req, res) => {
-    const serverHostname = req.rawHeaders[1];
-    const upstreamCacheRequest = await fetch(
-        `http://${serverHostname}/api/v${env.API_VERSION}/fetchTrains`
-    );
-    const trainsData = await upstreamCacheRequest.json();
+    const client = createClient();
+    await client.connect();
+
+    let result = {};
+    try {
+        const query = `SELECT VAL FROM ${env.DB.TABLE_NAME} WHERE KEY = '${env.DB.ROW_TRAINS}';`;
+        result = await client.query(query);
+    } catch (e) {
+        handleDBError(res, e);
+        return;
+    }
+
+    const trainsData = JSON.parse(result.rows[0]?.val);
 
     const keys = Object.keys(trainsData?.trains);
 
