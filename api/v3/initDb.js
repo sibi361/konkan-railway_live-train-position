@@ -34,6 +34,7 @@ export default async (req, res) => {
         return;
     }
 
+    // fetch stations
     const serverUrl = req.rawHeaders[1];
     await fetch(
         `http://${serverUrl}/api/v${env.API_VERSION}/scrapeStations?token=${
@@ -43,12 +44,31 @@ export default async (req, res) => {
         .then((response) => response.json())
         .then((json) =>
             json.success
+                ? {}
+                : res.send({
+                      message:
+                          "Database initialized but initial stations fetch failed",
+                      success: false,
+                  })
+        );
+
+    // fetch trains
+    await fetch(
+        `http://${serverUrl}/api/v${env.API_VERSION}/scrapeTrains?token=${
+            process.env[env.VERCEL_ENVS.PASSWORD_UPSTREAM_UPDATE]
+        }`
+    )
+        .then((response) => response.json())
+        .then((json) =>
+            json.success
                 ? res.send({
-                      message: "Database initialized",
+                      message:
+                          "Database initialized and inital fetch successful",
                       success: true,
                   })
                 : res.send({
-                      message: "Database initialized but stations fetch failed",
+                      message:
+                          "Database initialized but initial trains fetch failed",
                       success: false,
                   })
         );
