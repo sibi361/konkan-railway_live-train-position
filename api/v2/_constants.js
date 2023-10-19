@@ -5,16 +5,7 @@ export default {
     API_VERSION: 2,
     PLAYWRIGHT_OPTS: {
         headless: true,
-        args: [
-            "--disable-extensions",
-            "--disable-default-apps",
-            "--disable-gpu",
-            "--disable-sync",
-            "--disable-translate",
-            "--no-first-run",
-            "--incognito",
-            "--safebrowsing-disable-auto-update",
-        ],
+        args: [],
     },
     PLAYWRIGHT_DEVICE: "Desktop Firefox",
     SERVER_ERROR_MESSAGE: "Server overloaded. Please wait.",
