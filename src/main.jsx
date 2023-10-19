@@ -14,6 +14,11 @@ ReactDOM.createRoot(document.getElementById("root")).render(
                 </a>
                 &nbsp;for API documentation
             </p>
+            <p className="read-the-docs">
+                <a href={env.STATUS_PAGE_URL} target="_blank" rel="noreferrer">
+                    API Status
+                </a>
+            </p>
         </div>
     </React.StrictMode>
 );
