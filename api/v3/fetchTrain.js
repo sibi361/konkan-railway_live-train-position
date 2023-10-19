@@ -36,18 +36,22 @@ export default async (req, res) => {
 
     if (env.DEBUG) console.log(`${SCRIPT_NAME}: Fetching train: ${trainNo}`);
 
+    const data = {
+        lastFetchedAt: trainsData.lastFetchedAt,
+        lastUpdateAtUpstream: trainsData.lastUpdateAtUpstream,
+    };
+
     if (trainsData?.trains)
         if (keys.includes(trainNo))
             res.send({
-                lastFetchedAt: trainsData.lastFetchedAt,
-                lastUpdateAtUpstream: trainsData.lastUpdateAtUpstream,
+                ...data,
                 [trainNo]: trainsData.trains[trainNo],
                 success: true,
             });
         else {
             res.status(404);
             res.send({
-                lastUpdateAtUpstream: trainsData.lastUpdateAtUpstream,
+                ...data,
                 message: `Error:Train number "${trainNo}" NOT found. It might not have started yet.`,
                 success: false,
             });
