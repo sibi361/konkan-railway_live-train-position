@@ -5,7 +5,6 @@ export default {
     API_VERSION: 2,
     PLAYWRIGHT_OPTS: {
         headless: true,
-        args: [],
     },
     PLAYWRIGHT_DEVICE: "Desktop Firefox",
     SERVER_ERROR_MESSAGE: "Server overloaded. Please wait.",
