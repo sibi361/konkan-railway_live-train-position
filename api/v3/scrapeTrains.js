@@ -205,5 +205,7 @@ export default async (req, res) => {
         return;
     }
 
-    res.send({ count_trains: data.count_trains, success: true });
+    const response = { count_trains: data.count_trains, success: true };
+    Object.keys(response).forEach((key) => res.setHeader(key, response[key]));
+    res.send(response);
 };
