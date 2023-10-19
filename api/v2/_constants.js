@@ -7,7 +7,6 @@ export default {
         headless: true,
         args: [
             "--disable-extensions",
-            "--disable-background-networking",
             "--disable-default-apps",
             "--disable-gpu",
             "--disable-sync",
