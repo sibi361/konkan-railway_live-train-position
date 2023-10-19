@@ -17,7 +17,14 @@ export default async (req, res) => {
         return;
     }
 
-    const stationsData = JSON.parse(result.rows[0]?.val);
+    const stationsData = await JSON.parse(result.rows[0]?.val);
+    if (!stationsData) {
+        res.status(500);
+        res.send({
+            message: env.SERVER_ERROR_MESSAGE,
+            success: false,
+        });
+    }
 
     const keys = Object.keys(stationsData?.stations);
 

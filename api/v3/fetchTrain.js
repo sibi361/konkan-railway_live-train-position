@@ -17,7 +17,14 @@ export default async (req, res) => {
         return;
     }
 
-    const trainsData = JSON.parse(result.rows[0]?.val);
+    const trainsData = await JSON.parse(result.rows[0]?.val);
+    if (!trainsData) {
+        res.status(500);
+        res.send({
+            message: env.SERVER_ERROR_MESSAGE,
+            success: false,
+        });
+    }
 
     const keys = Object.keys(trainsData?.trains);
 
@@ -36,12 +43,12 @@ export default async (req, res) => {
 
     if (env.DEBUG) console.log(`${SCRIPT_NAME}: Fetching train: ${trainNo}`);
 
-    const data = {
-        lastFetchedAt: trainsData.lastFetchedAt,
-        lastUpdateAtUpstream: trainsData.lastUpdateAtUpstream,
-    };
+    if (trainsData?.trains) {
+        const data = {
+            lastFetchedAt: trainsData.lastFetchedAt,
+            lastUpdateAtUpstream: trainsData.lastUpdateAtUpstream,
+        };
 
-    if (trainsData?.trains)
         if (keys.includes(trainNo))
             res.send({
                 ...data,
@@ -56,7 +63,7 @@ export default async (req, res) => {
                 success: false,
             });
         }
-    else {
+    } else {
         res.status(500);
         res.send({
             message: env.SERVER_ERROR_MESSAGE,
