@@ -25,8 +25,8 @@ export default async (req, res) => {
     if (!trainNo) {
         res.status(400);
         res.send({
-            message: 'Error: "trainNo" parameter not provided',
-            example: `/api/fetchTrain?trainNo=${
+            message: 'Error: "tno" parameter not provided',
+            example: `/api/fetchTrain?tno=${
                 keys[Math.floor(Math.random() * keys.length)]
             }`,
             success: false,
