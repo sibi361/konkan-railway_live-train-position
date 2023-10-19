@@ -34,8 +34,21 @@ export default async (req, res) => {
         return;
     }
 
-    // fetch stations
+    let init_status = { db: true, scrapeStations: false, scrapeTrains: false };
+
+    // fetch trains
     const serverUrl = req.rawHeaders[1];
+    fetch(
+        `http://${serverUrl}/api/v${env.API_VERSION}/scrapeTrains?token=${
+            process.env[env.VERCEL_ENVS.PASSWORD_UPSTREAM_UPDATE]
+        }`
+    )
+        .then((response) => response.json())
+        .then((json) => {
+            init_status.scrapeTrains = json.success;
+        });
+
+    // fetch stations
     await fetch(
         `http://${serverUrl}/api/v${env.API_VERSION}/scrapeStations?token=${
             process.env[env.VERCEL_ENVS.PASSWORD_UPSTREAM_UPDATE]
@@ -43,37 +56,11 @@ export default async (req, res) => {
     )
         .then((response) => response.json())
         .then((json) => {
-            if (!json.success) {
-                res.send({
-                    message:
-                        "Database initialized but initial stations fetch failed",
-                    success: false,
-                });
-                return;
-            }
+            init_status.scrapeStations = json.success;
         });
 
-    // fetch trains
-    await fetch(
-        `http://${serverUrl}/api/v${env.API_VERSION}/scrapeTrains?token=${
-            process.env[env.VERCEL_ENVS.PASSWORD_UPSTREAM_UPDATE]
-        }`
-    )
-        .then((response) => response.json())
-        .then((json) => {
-            if (json.success) {
-                res.send({
-                    message: "Database initialized and inital fetch successful",
-                    success: true,
-                });
-                return;
-            } else {
-                res.send({
-                    message:
-                        "Database initialized but initial trains fetch failed",
-                    success: false,
-                });
-                return;
-            }
-        });
+    console.log("init_status:", init_status);
+    res.send({
+        success: init_status,
+    });
 };
