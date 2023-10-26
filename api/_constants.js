@@ -11,9 +11,8 @@ const env = {
 };
 
 env.DB = {
-    TABLE_NAME: `KONKAN_RAILWAY_API_V${env.API_VERSION}_TB1`,
-    ROW_STATIONS: "JSON_DATA_STATIONS",
-    ROW_TRAINS: "JSON_DATA_TRAINS",
+    FIREBASE_REALTIME_DATABASE_URL:
+        "https://kr-api-v4-default-rtdb.asia-southeast1.firebasedatabase.app",
 };
 
 env.VERCEL_ENVS = {
