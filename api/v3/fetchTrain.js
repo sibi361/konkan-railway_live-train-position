@@ -1,5 +1,5 @@
 import { createClient } from "@vercel/postgres";
-import env from "../_constants.js";
+import env from "./_constants.js";
 import { handleDBError } from "../_utils.js";
 
 const SCRIPT_NAME = "fetchTrain";

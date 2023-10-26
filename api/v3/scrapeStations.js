@@ -1,7 +1,7 @@
 import playwright from "playwright-aws-lambda";
 import { devices } from "playwright-core";
 import { createClient } from "@vercel/postgres";
-import env from "../_constants.js";
+import env from "./_constants.js";
 import {
     authCheckScraper,
     handleUnauthorizedRequest,
