@@ -1,6 +1,6 @@
 import { createClient } from "@vercel/postgres";
-import env from "../_constants.js";
-import { handleDBError } from "../_utils.js";
+import env from "../../_constants.js";
+import { handleDBError } from "../../_utils.js";
 
 const SCRIPT_NAME = "fetchStation";
 
@@ -29,12 +29,22 @@ export default async (req, res) => {
 
     const keys = Object.keys(stationsData?.stations);
 
-    res.status(400);
-    res.send({
-        message: "Error: Station name parameter not provided",
-        example: `/api/${SCRIPT_NAME}/${
-            keys[Math.floor(Math.random() * keys.length)]
-        }`,
-        success: false,
-    });
+    const stationName = req.query.fetchStationSlug?.toLocaleLowerCase();
+
+    if (env.DEBUG)
+        console.log(`${SCRIPT_NAME}: Fetching station: ${stationName}`);
+
+    const key = keys.find((station) => station.includes(stationName));
+    if (key)
+        res.send({
+            [key]: stationsData.stations[key],
+            success: true,
+        });
+    else {
+        res.status(404);
+        res.send({
+            message: `Error: Station named "${stationName}" NOT found.`,
+            success: false,
+        });
+    }
 };

@@ -14,7 +14,7 @@ Current API version: `3`
 - `/api/v3/fetchTrains`
     Returns live status about all the trains currently moving on the Konkan Railway
 
-- `/api/v3/fetchTrain?tno=<TRAIN-NUMBER>`
+- `/api/v3/fetchTrain/<TRAIN-NUMBER>`
     Returns an object containing information about the queried train such as
         - most recently touched station
         - arrived/departed time from that station
@@ -23,7 +23,7 @@ Current API version: `3`
 - `/api/v3/fetchStations`
     Returns an object containing all the stations on the Konkan Railway route
 
-- `/api/v3/fetchStation?name=<STATION-PLACE-NAME>`
+- `/api/v3/fetchStation/<STATION-PLACE-NAME>`
      Returns an object containing information about the queried station such as
         - type i.e. big station or small station
         - state
@@ -98,6 +98,13 @@ curl "<YOUR-ENDPOINT-URL>/api/v3/initDb" -H "x-vercel-signature: <YOUR-SECRET_IN
 - [ ] Migrate DB to Firebase
 - [ ] Build a frontend
 - [ ] Send PR to [public-api-lists](https://github.com/public-api-lists/public-api-lists)
+
+
+## Changelog
+
+- `v3`: Added caching with Postgres DB
+- `v2`: Refactored code to host on Vercel Serverless Functions
+- `v1`: [sibi361/konkan-railway_api](https://github.com/sibi361/konkan-railway_api)
 
 
 ## Motivation
