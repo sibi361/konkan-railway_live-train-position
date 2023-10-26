@@ -5,7 +5,8 @@ const env = {
     API_VERSION: 3,
     PLAYWRIGHT_OPTS: { headless: true },
     PLAYWRIGHT_DEVICE: "Desktop Firefox",
-    SERVER_ERROR_MESSAGE: "Server overloaded. Please wait.",
+    SERVER_ERROR_MESSAGE:
+        "Server overloaded. Please wait. Or you could use the non-cached endpoint available at /api/v2",
     UNAUTHORIZED_ERROR_MESSAGE: "Unauthorized request: Token not supplied",
 };
 

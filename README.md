@@ -95,9 +95,7 @@ curl "<YOUR-ENDPOINT-URL>/api/v3/initDb" -H "x-vercel-signature: <YOUR-SECRET_IN
 ## TODO
 
 - [x] Implement data caching in DB
-- [ ] Migrate DB to Vercel Edge Config
-- [ ] Appending `?latest` to the URL will trigger a manual update from the upstream provided the previous fetch is stale, i.e. more than X minutes ago
-    - [ ] Implement rate limiting (https://vercel.com/docs/functions/edge-functions/vercel-edge-package#ipaddress)
+- [ ] Migrate DB to Firebase
 - [ ] Build a frontend
 - [ ] Send PR to [public-api-lists](https://github.com/public-api-lists/public-api-lists)
 

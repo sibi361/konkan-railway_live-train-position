@@ -2,6 +2,8 @@ import { createClient } from "@vercel/postgres";
 import env from "../_constants.js";
 import { handleDBError } from "../_utils.js";
 
+const SCRIPT_NAME = "fetchTrains";
+
 export default async (req, res) => {
     const client = createClient();
     await client.connect();
@@ -20,7 +22,7 @@ export default async (req, res) => {
     if (!data || Object.keys(data).length == 0) {
         res.status(500);
         res.send({
-            message: env.SERVER_ERROR_MESSAGE,
+            message: `${env.SERVER_ERROR_MESSAGE}/${SCRIPT_NAME}`,
             success: false,
         });
     } else

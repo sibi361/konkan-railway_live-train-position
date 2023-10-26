@@ -18,12 +18,13 @@ export default async (req, res) => {
     }
 
     const trainsData = await JSON.parse(result.rows[0]?.val);
-    if (!trainsData) {
+    if (!trainsData || !trainsData?.trains) {
         res.status(500);
         res.send({
-            message: env.SERVER_ERROR_MESSAGE,
+            message: `${env.SERVER_ERROR_MESSAGE}/${SCRIPT_NAME}`,
             success: false,
         });
+        return;
     }
 
     const keys = Object.keys(trainsData?.trains);
@@ -43,30 +44,22 @@ export default async (req, res) => {
 
     if (env.DEBUG) console.log(`${SCRIPT_NAME}: Fetching train: ${trainNo}`);
 
-    if (trainsData?.trains) {
-        const data = {
-            lastFetchedAt: trainsData.lastFetchedAt,
-            lastUpdateAtUpstream: trainsData.lastUpdateAtUpstream,
-        };
+    const data = {
+        lastFetchedAt: trainsData.lastFetchedAt,
+        lastUpdateAtUpstream: trainsData.lastUpdateAtUpstream,
+    };
 
-        if (keys.includes(trainNo))
-            res.send({
-                ...data,
-                [trainNo]: trainsData.trains[trainNo],
-                success: true,
-            });
-        else {
-            res.status(404);
-            res.send({
-                ...data,
-                message: `Error:Train number "${trainNo}" NOT found. It might not have started yet.`,
-                success: false,
-            });
-        }
-    } else {
-        res.status(500);
+    if (keys.includes(trainNo))
         res.send({
-            message: env.SERVER_ERROR_MESSAGE,
+            ...data,
+            [trainNo]: trainsData.trains[trainNo],
+            success: true,
+        });
+    else {
+        res.status(404);
+        res.send({
+            ...data,
+            message: `Error:Train number "${trainNo}" NOT found. It might not have started yet.`,
             success: false,
         });
     }

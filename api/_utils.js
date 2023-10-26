@@ -39,8 +39,14 @@ export const handleUnauthorizedRequest = (response) => {
 export const handleDBError = (response, errorMsg) => {
     response.status(500);
     console.log(`# DB Error: ${errorMsg}`);
-    if (env.DEBUG) response.send({ message: errorMsg, success: false });
-    else response.send({ message: env.SERVER_ERROR_MESSAGE, success: false });
+    if (env.DEBUG) {
+        response.status(500);
+        response.send({ error: errorMsg, success: false });
+    } else
+        response.send({
+            message: `${env.SERVER_ERROR_MESSAGE}`,
+            success: false,
+        });
 };
 
 export const prepareJsonForDb = (json) => {

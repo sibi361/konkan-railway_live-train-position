@@ -18,12 +18,13 @@ export default async (req, res) => {
     }
 
     const stationsData = await JSON.parse(result.rows[0]?.val);
-    if (!stationsData) {
+    if (!stationsData || !stationsData?.stations) {
         res.status(500);
         res.send({
-            message: env.SERVER_ERROR_MESSAGE,
+            message: `${env.SERVER_ERROR_MESSAGE}/${SCRIPT_NAME}`,
             success: false,
         });
+        return;
     }
 
     const keys = Object.keys(stationsData?.stations);
@@ -44,24 +45,16 @@ export default async (req, res) => {
     if (env.DEBUG)
         console.log(`${SCRIPT_NAME}: Fetching station: ${stationName}`);
 
-    if (stationsData?.stations) {
-        const key = keys.find((station) => station.includes(stationName));
-        if (key)
-            res.send({
-                [key]: stationsData.stations[key],
-                success: true,
-            });
-        else {
-            res.status(404);
-            res.send({
-                message: `Error: Station named "${stationName}" NOT found.`,
-                success: false,
-            });
-        }
-    } else {
-        res.status(500);
+    const key = keys.find((station) => station.includes(stationName));
+    if (key)
         res.send({
-            message: env.SERVER_ERROR_MESSAGE,
+            [key]: stationsData.stations[key],
+            success: true,
+        });
+    else {
+        res.status(404);
+        res.send({
+            message: `Error: Station named "${stationName}" NOT found.`,
             success: false,
         });
     }
