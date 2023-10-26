@@ -19,8 +19,7 @@ export default async (req, res) => {
 
     const trainsData = await JSON.parse(result.rows[0]?.val);
     if (!trainsData || !trainsData?.trains) {
-        res.status(500);
-        res.send({
+        res.status(500).json({
             message: `${env.SERVER_ERROR_MESSAGE}/${SCRIPT_NAME}`,
             success: false,
         });

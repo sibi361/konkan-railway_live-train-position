@@ -20,8 +20,7 @@ export default async (req, res) => {
     const data = await JSON.parse(result.rows[0]?.val);
 
     if (!data || Object.keys(data).length == 0) {
-        res.status(500);
-        res.send({
+        res.status(500).json({
             message: `${env.SERVER_ERROR_MESSAGE}/${SCRIPT_NAME}`,
             success: false,
         });

@@ -135,11 +135,9 @@ export default async (req, res) => {
     } catch (e) {
         console.log(`# ERROR in ${SCRIPT_NAME}: ${e}`);
         if (env.DEBUG) {
-            res.status(500);
-            res.send({ error: e, success: false });
+            res.status(500).json({ error: e, success: false });
         } else {
-            res.status(500);
-            res.send({
+            res.status(500).json({
                 message: `${env.SERVER_ERROR_MESSAGE}/${SCRIPT_NAME}`,
                 success: false,
             });

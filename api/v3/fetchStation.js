@@ -19,8 +19,7 @@ export default async (req, res) => {
 
     const stationsData = await JSON.parse(result.rows[0]?.val);
     if (!stationsData || !stationsData?.stations) {
-        res.status(500);
-        res.send({
+        res.status(500).json({
             message: `${env.SERVER_ERROR_MESSAGE}/${SCRIPT_NAME}`,
             success: false,
         });
@@ -29,8 +28,7 @@ export default async (req, res) => {
 
     const keys = Object.keys(stationsData?.stations);
 
-    res.status(400);
-    res.send({
+    res.status(400).json({
         message: "Error: Station name parameter not provided",
         example: `/api/${SCRIPT_NAME}/${
             keys[Math.floor(Math.random() * keys.length)]
