@@ -1,4 +1,4 @@
-import env from "./_constants.js";
+import env from "../_constants.js";
 
 export default async (req, res) => {
     const serverHostname = req.rawHeaders[1];
@@ -9,18 +9,7 @@ export default async (req, res) => {
 
     const keys = Object.keys(stationsData?.stations);
 
-    const stationName = req.query.name?.toLocaleLowerCase();
-    if (!stationName) {
-        res.status(400);
-        res.send({
-            message: 'Error: "name" parameter not provided',
-            example: `/api/fetchStation?name=${
-                keys[Math.floor(Math.random() * keys.length)]
-            }`,
-            success: false,
-        });
-        return;
-    }
+    const stationName = req.query.fetchStationSlug;
 
     if (env.DEBUG) console.log(`Fetching station: ${stationName}`);
 

@@ -1,4 +1,4 @@
-import env from "./_constants.js";
+import env from "../_constants.js";
 
 export default async (req, res) => {
     if (env.DEBUG)
@@ -12,18 +12,7 @@ export default async (req, res) => {
 
     const keys = Object.keys(trainsData?.trains);
 
-    const trainNo = req.query.tno;
-    if (!trainNo) {
-        res.status(400);
-        res.send({
-            message: 'Error: "tno" parameter not provided',
-            example: `/api/fetchTrain?trainNo=${
-                keys[Math.floor(Math.random() * keys.length)]
-            }`,
-            success: false,
-        });
-        return;
-    }
+    const trainNo = req.query.fetchTrainSlug;
 
     if (env.DEBUG) console.log(`Fetching train: ${trainNo}`);
 

@@ -4,6 +4,9 @@ import { devices } from "playwright-core";
 import env from "./_constants.js";
 
 export default async (req, res) => {
+    if (env.DEBUG)
+        console.log("fetchTrains: Fetching trains data from upstream");
+
     const data = await (async () => {
         const browser = await playwright.launchChromium(env.PLAYWRIGHT_OPTS);
         const UA = devices[env.PLAYWRIGHT_DEVICE];
