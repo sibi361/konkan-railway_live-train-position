@@ -48,7 +48,3 @@ export const handleDBError = (response, errorMsg) => {
             success: false,
         });
 };
-
-export const prepareJsonForDb = (json) => {
-    return JSON.stringify(json).toString().replaceAll("'", "");
-};

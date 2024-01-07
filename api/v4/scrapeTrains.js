@@ -1,23 +1,23 @@
 import JSSoup from "jssoup";
-import { createClient } from "@vercel/postgres";
+
 import env from "../_constants.js";
 import {
     authCheckScraper,
     handleUnauthorizedRequest,
     handleDBError,
-    prepareJsonForDb,
 } from "../_utils.js";
+import { fetchDbToken } from "./_dbGenerateToken.js";
 
 const jss = JSSoup.default;
 
 const SCRIPT_NAME = "scrapeTrains";
 
 export default async (req, res) => {
-    // const is_authorized = await authCheckScraper(req);
-    // if (!is_authorized) {
-    //     handleUnauthorizedRequest(res);
-    //     return;
-    // }
+    const is_authorized = await authCheckScraper(req);
+    if (!is_authorized) {
+        handleUnauthorizedRequest(res);
+        return;
+    }
 
     if (env.DEBUG)
         console.log(`${SCRIPT_NAME}: Fetching trains data from upstream`);
@@ -145,14 +145,12 @@ export default async (req, res) => {
         data = {
             lastFetchedAt: currentTimeStamp,
             lastUpdateAtUpstream: timeStamp,
-            count_trains: Object.keys(trains).length,
+            count: Object.keys(trains).length,
             trains,
         };
 
         if (env.DEBUG)
-            console.log(
-                `${SCRIPT_NAME}: Updated trains count: ${data.count_trains}`
-            );
+            console.log(`${SCRIPT_NAME}: Updated trains count: ${data.count}`);
     } catch (e) {
         console.log(`# ERROR in ${SCRIPT_NAME}: ${e}`);
         if (env.DEBUG) {
@@ -166,20 +164,44 @@ export default async (req, res) => {
         return;
     }
 
-    // const client = createClient();
-    // await client.connect();
+    try {
+        const tokenFetcherResp = await fetchDbToken().catch((e) =>
+            console.log(e)
+        );
 
-    // try {
-    //     const query = `UPDATE ${
-    //         env.DB.TABLE_NAME
-    //     } SET VAL = '${prepareJsonForDb(data)}' WHERE KEY = '${
-    //         env.DB.ROW_TRAINS
-    //     }';`;
-    //     await client.query(query);
-    // } catch (e) {
-    //     handleDBError(res, e);
-    //     return;
-    // }
+        if (!tokenFetcherResp?.success)
+            return res.status(500).send({
+                msg: tokenFetcherResp?.msg,
+                success: false,
+            });
 
-    res.send({ count_trains: data.count_trains, success: true });
+        const db_token = tokenFetcherResp.token;
+
+        await fetch(`${env.DB.FIREBASE_REALTIME_DATABASE_URL}/trains.json`, {
+            method: "PUT",
+            headers: {
+                "Authorization": `Bearer ${db_token}`,
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(data),
+        })
+            .then((r) => r.json())
+            .then((dbResponse) => {
+                if (Object.keys(dbResponse).includes("error"))
+                    res.status(500).send({
+                        dbResponse,
+                        msg: `# ERROR in ${SCRIPT_NAME}: DB auth failed`,
+                        count: data.count,
+                        success: false,
+                    });
+                else
+                    res.send({
+                        count: data.count,
+                        success: true,
+                    });
+            });
+    } catch (e) {
+        handleDBError(res, e);
+        return;
+    }
 };

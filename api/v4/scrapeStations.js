@@ -1,12 +1,12 @@
 import JSSoup from "jssoup";
-import { createClient } from "@vercel/postgres";
+
 import env from "../_constants.js";
 import {
     authCheckScraper,
     handleUnauthorizedRequest,
     handleDBError,
-    prepareJsonForDb,
 } from "../_utils.js";
+import { fetchDbToken } from "./_dbGenerateToken.js";
 
 const jss = JSSoup.default;
 
@@ -103,12 +103,10 @@ export default async (req, res) => {
 
         ///////////////////
 
-        data = { count_stations: Object.keys(stations).length, stations };
+        data = { count: Object.keys(stations).length, stations };
 
         if (env.DEBUG)
-            console.log(
-                `${SCRIPT_NAME}: Stations count: ${data.count_stations}`
-            );
+            console.log(`${SCRIPT_NAME}: Stations count: ${data.count}`);
     } catch (e) {
         console.log(`# ERROR in ${SCRIPT_NAME}: ${e}`);
         if (env.DEBUG) {
@@ -122,20 +120,44 @@ export default async (req, res) => {
         return;
     }
 
-    const client = createClient();
-    await client.connect();
-
     try {
-        const query = `UPDATE ${
-            env.DB.TABLE_NAME
-        } SET VAL = '${prepareJsonForDb(data)}' WHERE KEY = '${
-            env.DB.ROW_STATIONS
-        }';`;
-        await client.query(query);
+        const tokenFetcherResp = await fetchDbToken().catch((e) =>
+            console.log(e)
+        );
+
+        if (!tokenFetcherResp.success)
+            return res.status(500).send({
+                msg: tokenFetcherResp.msg,
+                success: false,
+            });
+
+        const db_token = tokenFetcherResp.token;
+
+        await fetch(`${env.DB.FIREBASE_REALTIME_DATABASE_URL}/stations.json`, {
+            method: "PUT",
+            headers: {
+                "Authorization": `Bearer ${db_token}`,
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(data),
+        })
+            .then((r) => r.json())
+            .then((dbResponse) => {
+                if (Object.keys(dbResponse).includes("error"))
+                    res.status(500).send({
+                        dbResponse,
+                        msg: `# ERROR in ${SCRIPT_NAME}: DB auth failed`,
+                        count: data.count,
+                        success: false,
+                    });
+                else
+                    res.send({
+                        count: data.count,
+                        success: true,
+                    });
+            });
     } catch (e) {
         handleDBError(res, e);
         return;
     }
-
-    res.send({ count_stations: data.count_stations, success: true });
 };
