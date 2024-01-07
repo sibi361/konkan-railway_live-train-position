@@ -1,13 +1,14 @@
-import playwright from "playwright-aws-lambda";
-import { devices } from "playwright-core";
+import JSSoup from "jssoup";
 import { createClient } from "@vercel/postgres";
-import env from "./_constants.js";
+import env from "../_constants.js";
 import {
     authCheckScraper,
     handleUnauthorizedRequest,
     handleDBError,
     prepareJsonForDb,
 } from "../_utils.js";
+
+const jss = JSSoup.default;
 
 const SCRIPT_NAME = "scrapeStations";
 
@@ -23,115 +24,91 @@ export default async (req, res) => {
 
     let data = {};
     try {
-        data = await (async () => {
-            const browser = await playwright.launchChromium(
-                env.PLAYWRIGHT_OPTS
+        const html = await fetch(env.UPSTREAM_URL).then((resp) => resp.text());
+
+        const soup = new jss(html);
+
+        ///////////////////
+
+        const stationsOptions = Array.from(
+            soup.find("select", {
+                id: "stationId",
+            }).descendants
+        ).slice(1);
+
+        const stArr = stationsOptions
+            .map((option) => option.text)
+            .filter((s) => s !== undefined);
+
+        ///////////////////
+
+        const hiddenInputs = soup.findAll("input", {
+            type: "hidden",
+        });
+        const hiddenInputsLen = Object.keys(hiddenInputs).length;
+
+        let hiddenInputsArr = [];
+        for (let i = 0; i < hiddenInputsLen; i++)
+            hiddenInputsArr.push(hiddenInputs[i.toString()]);
+
+        ///////////////////
+
+        const stationTypeArr = hiddenInputsArr.filter((e) =>
+            e.attrs.name.startsWith("stationType")
+        );
+        const stationStateArr = hiddenInputsArr.filter((e) =>
+            e.attrs.name.startsWith("stationState")
+        );
+        const stationDescriptionArr = hiddenInputsArr.filter((e) =>
+            e.attrs.name.startsWith("stationDescription")
+        );
+        const distanceArr = hiddenInputsArr.filter((e) =>
+            e.attrs.name.startsWith("distance")
+        );
+
+        ///////////////////
+
+        const stations = stArr.reduce((obj, stName, i) => {
+            const stateValue = stationStateArr[i]?.attrs?.value
+                ?.trim()
+                .toLocaleLowerCase();
+
+            let state;
+            switch (stateValue) {
+                case "m":
+                    state = "Maharashtra";
+                    break;
+                case "g":
+                    state = "Goa";
+                    break;
+                case "k":
+                    state = "Karnataka";
+                    break;
+                default:
+                    state = stateValue;
+            }
+
+            return {
+                ...obj,
+                [stName]: {
+                    type: stationTypeArr[i]?.attrs?.value
+                        ?.trim()
+                        .toLocaleLowerCase(),
+                    state,
+                    description: stationDescriptionArr[i]?.attrs?.value?.trim(),
+                    distance: distanceArr[i]?.attrs?.value?.trim(),
+                },
+            };
+        }, {});
+
+        ///////////////////
+
+        data = { count_stations: Object.keys(stations).length, stations };
+
+        if (env.DEBUG)
+            console.log(
+                `${SCRIPT_NAME}: Stations count: ${data.count_stations}`
             );
-            const UA = devices[env.PLAYWRIGHT_DEVICE];
-            const context = await browser.newContext(UA);
-            const page = await context.newPage();
-
-            // disable assets loading to save bandwidth
-            page.route("**/*", (route) => {
-                if (route.request().resourceType() == "document")
-                    route.continue();
-                else route.abort();
-            });
-
-            await page.goto(env.UPSTREAM_URL);
-
-            const response = await page.evaluate(() => {
-                const stationsSelectEle = document.querySelector("#stationId");
-                const options = Array.from(
-                    stationsSelectEle.querySelectorAll("option")
-                ).slice(1); // exclude header
-                let stations = options.reduce(
-                    (stations, option) => ({
-                        ...stations,
-                        [option.textContent.trim().toLocaleLowerCase()]: {},
-                    }),
-                    {}
-                );
-
-                const stationTypeArr = document.querySelectorAll(
-                    'input[type="hidden"][name^="stationType"]'
-                );
-                const stationTypeArrLen = stationTypeArr.length;
-
-                const stationStateArr = document.querySelectorAll(
-                    'input[type="hidden"][name^="stationState"]'
-                );
-                const stationStateArrLen = stationStateArr.length;
-
-                const stationDescriptionArr = document.querySelectorAll(
-                    'input[type="hidden"][name^="stationDescription"]'
-                );
-                const stationDescriptionArrLen = stationDescriptionArr.length;
-
-                const distanceArr = document.querySelectorAll(
-                    'input[type="hidden"][name^="distance"]'
-                );
-                const distanceArrLen = distanceArr.length;
-
-                if (stations)
-                    stations = Object.keys(stations)
-                        .slice(0)
-                        .reduce((stationsObj, stName, i, inputArray) => {
-                            // break if num(hidden inputs) < num(select options)
-                            if (
-                                i === stationTypeArrLen ||
-                                i === stationStateArrLen ||
-                                i === stationDescriptionArrLen ||
-                                i === distanceArrLen
-                            )
-                                inputArray.splice(i); // https://stackoverflow.com/a/47441371
-
-                            const stateValue = stationStateArr[i]?.value
-                                .trim()
-                                .toLocaleLowerCase();
-                            let state;
-                            switch (stateValue) {
-                                case "m":
-                                    state = "Maharashtra";
-                                    break;
-                                case "g":
-                                    state = "Goa";
-                                    break;
-                                case "k":
-                                    state = "Karnataka";
-                                    break;
-                                default:
-                                    state = stateValue;
-                            }
-
-                            return {
-                                ...stationsObj,
-                                [stName]: {
-                                    type: stationTypeArr[i]?.value
-                                        .trim()
-                                        .toLocaleLowerCase(),
-                                    state,
-                                    description:
-                                        stationDescriptionArr[i]?.value.trim(),
-                                    distance: distanceArr[i]?.value.trim(),
-                                },
-                            };
-                        }, stations);
-
-                return {
-                    stations,
-                    count_stations: Object.keys(stations).length,
-                };
-            });
-
-            await browser.close();
-            if (env.DEBUG)
-                console.log(
-                    `${SCRIPT_NAME}: Stations count: ${response.count_stations}`
-                );
-
-            return response;
-        })();
     } catch (e) {
         console.log(`# ERROR in ${SCRIPT_NAME}: ${e}`);
         if (env.DEBUG) {
@@ -160,7 +137,5 @@ export default async (req, res) => {
         return;
     }
 
-    const response = { count_trains: data.count_stations, success: true };
-    Object.keys(response).forEach((key) => res.setHeader(key, response[key]));
-    res.send(response);
+    res.send({ count_stations: data.count_stations, success: true });
 };

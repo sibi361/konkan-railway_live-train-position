@@ -1,7 +1,6 @@
-import playwright from "playwright-aws-lambda";
-import { devices } from "playwright-core";
+import JSSoup from "jssoup";
 import { createClient } from "@vercel/postgres";
-import env from "./_constants.js";
+import env from "../_constants.js";
 import {
     authCheckScraper,
     handleUnauthorizedRequest,
@@ -9,177 +8,151 @@ import {
     prepareJsonForDb,
 } from "../_utils.js";
 
+const jss = JSSoup.default;
+
 const SCRIPT_NAME = "scrapeTrains";
 
 export default async (req, res) => {
-    const is_authorized = await authCheckScraper(req);
-    if (!is_authorized) {
-        handleUnauthorizedRequest(res);
-        return;
-    }
+    // const is_authorized = await authCheckScraper(req);
+    // if (!is_authorized) {
+    //     handleUnauthorizedRequest(res);
+    //     return;
+    // }
 
     if (env.DEBUG)
         console.log(`${SCRIPT_NAME}: Fetching trains data from upstream`);
 
     let data = {};
     try {
-        data = await (async () => {
-            const browser = await playwright.launchChromium(
-                env.PLAYWRIGHT_OPTS
-            );
-            const UA = devices[env.PLAYWRIGHT_DEVICE];
-            const context = await browser.newContext(UA);
-            const page = await context.newPage();
+        const html = await fetch(env.UPSTREAM_URL).then((resp) => resp.text());
 
-            // disable assets loading to save bandwidth
-            page.route("**/*", (route) => {
-                if (route.request().resourceType() == "document")
-                    route.continue();
-                else route.abort();
-            });
+        const soup = new jss(html);
 
-            await page.goto(env.UPSTREAM_URL);
+        ///////////////////
 
-            const response = await page.evaluate(() => {
-                const timeStampSpan = document.querySelector(".lastupdatetext");
-                const timeSplit = timeStampSpan.textContent
-                    .split(" ")
-                    .slice(4, 6);
-                const timeStamp =
-                    `${timeSplit[0].split("/").reverse().join("-")}` +
-                    `T${timeSplit[1]}`;
+        const timeStampSpan = soup.find("span", {
+            class: "lastupdatetext",
+        });
 
-                const currentTimeStamp = new Date(
-                    Date.parse(new Date()) + 19800000
-                )
-                    .toISOString()
-                    .slice(0, 19);
+        const timeSplit = timeStampSpan.text.trim().split(" ").slice(4, 6);
+        const timeStamp = `${timeSplit[0].split("/").reverse().join("-")}T${
+            timeSplit[1]
+        }`;
 
-                const data = {
-                    lastFetchedAt: currentTimeStamp,
-                    lastUpdateAtUpstream: timeStamp,
-                };
+        const currentTimeStamp = new Date(Date.parse(new Date()) + 19800000) // IST Offset
+            .toISOString()
+            .slice(0, 19);
 
-                const trainDataArr = document.querySelectorAll(
-                    'input[type="hidden"][name^="trainData"]'
-                );
+        ///////////////////
 
-                const statusArr = document.querySelectorAll(
-                    'input[type="hidden"][name^="status"]'
-                );
-                const statusArrLen = statusArr.length;
+        const hiddenInputs = soup.findAll("input", {
+            type: "hidden",
+        });
+        const hiddenInputsLen = Object.keys(hiddenInputs).length;
 
-                const closedSationArr = document.querySelectorAll(
-                    'input[type="hidden"][name^="closedSation"]'
-                );
-                const closedSationArrLen = closedSationArr.length;
+        let hiddenInputsArr = [];
+        for (let i = 0; i < hiddenInputsLen; i++)
+            hiddenInputsArr.push(hiddenInputs[i.toString()]);
 
-                const arrivedTimeArr = document.querySelectorAll(
-                    'input[type="hidden"][name^="arrivedTime"]'
-                );
-                const arrivedTimeArrLen = arrivedTimeArr.length;
+        ///////////////////
 
-                const lateTimeArr = document.querySelectorAll(
-                    'input[type="hidden"][name^="lateTime"]'
-                );
-                const lateTimeArrLen = lateTimeArr.length;
+        const trainDataArr = hiddenInputsArr.filter((e) =>
+            e.attrs.name.startsWith("trainData")
+        );
+        const statusArr = hiddenInputsArr.filter((e) =>
+            e.attrs.name.startsWith("status")
+        );
+        const closedSationArr = hiddenInputsArr.filter((e) =>
+            e.attrs.name.startsWith("closedSation")
+        );
+        const arrivedTimeArr = hiddenInputsArr.filter((e) =>
+            e.attrs.name.startsWith("arrivedTime")
+        );
+        const lateTimeArr = hiddenInputsArr.filter((e) =>
+            e.attrs.name.startsWith("lateTime")
+        );
+        const trainTypeArr = hiddenInputsArr.filter((e) =>
+            e.attrs.name.startsWith("trainType")
+        );
+        const trainDirectionArr = hiddenInputsArr.filter((e) =>
+            e.attrs.name.startsWith("trainDirection")
+        );
 
-                const trainTypeArr = document.querySelectorAll(
-                    'input[type="hidden"][name^="trainType"]'
-                );
-                const trainTypeArrLen = trainTypeArr.length;
+        ///////////////////
 
-                const trainDirectionArr = document.querySelectorAll(
-                    'input[type="hidden"][name^="trainDirection"]'
-                );
-                const trainDirectionArrLen = trainDirectionArr.length;
+        const trains = Array.from(trainDataArr).reduce(
+            (trains, trainData, i) => {
+                const trainDataSplit = trainData?.attrs?.value?.split(" ");
+                const number = trainDataSplit[0];
+                const name = trainDataSplit.slice(1, -2).join(" ");
+                const arrivedTimeSplit =
+                    arrivedTimeArr[i]?.attrs?.value?.split(":");
+                const lateTimeSplit = lateTimeArr[i]?.attrs?.value?.split(":");
 
-                data.trains = Array.from(trainDataArr)
-                    .slice(0)
-                    .reduce((trains, trainData, i, inputArray) => {
-                        // break if num(hidden inputs) < num(select options)
-                        if (
-                            i === statusArrLen ||
-                            i === closedSationArrLen ||
-                            i === arrivedTimeArrLen ||
-                            i === lateTimeArrLen ||
-                            i === trainTypeArrLen ||
-                            i === trainDirectionArrLen
-                        )
-                            inputArray.splice(i); // https://stackoverflow.com/a/47441371
-
-                        const trainDataSplit = trainData?.value.split(" ");
-                        const number = trainDataSplit[0];
-                        const name = trainDataSplit.slice(1, -2).join(" ");
-                        const arrivedTimeSplit =
-                            arrivedTimeArr[i]?.value.split(":");
-                        const lateTimeSplit = lateTimeArr[i]?.value.split(":");
-
-                        const typeValue = trainTypeArr[i]?.value
-                            .trim()
-                            .toLocaleUpperCase();
-                        let type;
-                        switch (typeValue) {
-                            case "EXP":
-                                type = "Express";
-                                break;
-                            case "SUP":
-                                type = "Superfast";
-                                break;
-                            case "ORD":
-                                type = "Passenger";
-                                break;
-                            case "RAJ":
-                                type = "Rajdhani";
-                                break;
-                            case "SHAT":
-                                type = "Shatabdi";
-                                break;
-                            case "ROR":
-                                type = "Goods";
-                                break;
-                            default:
-                                type = typeValue;
-                        }
-                        return {
-                            ...trains,
-                            [number]: {
-                                name,
-                                status: statusArr[i]?.value.toLocaleLowerCase(),
-                                station:
-                                    closedSationArr[
-                                        i
-                                    ]?.value.toLocaleLowerCase(),
-                                statusTime: {
-                                    hours: arrivedTimeSplit[0],
-                                    minutes: arrivedTimeSplit[1],
-                                },
-                                delayedTime: {
-                                    hours: lateTimeSplit[0],
-                                    minutes: lateTimeSplit[1],
-                                },
-                                type,
-                                direction: trainDirectionArr[i]?.value
-                                    .trim()
-                                    .toLocaleLowerCase(),
-                            },
-                        };
-                    }, {});
-
+                const typeValue = trainTypeArr[i]?.attrs?.value
+                    ?.trim()
+                    .toLocaleUpperCase();
+                let type;
+                switch (typeValue) {
+                    case "EXP":
+                        type = "Express";
+                        break;
+                    case "SUP":
+                        type = "Superfast";
+                        break;
+                    case "ORD":
+                        type = "Passenger";
+                        break;
+                    case "RAJ":
+                        type = "Rajdhani";
+                        break;
+                    case "SHAT":
+                        type = "Shatabdi";
+                        break;
+                    case "ROR":
+                        type = "Goods";
+                        break;
+                    default:
+                        type = typeValue;
+                }
                 return {
-                    ...data,
-                    count_trains: Object.keys(data.trains).length,
+                    ...trains,
+                    [number]: {
+                        name,
+                        status: statusArr[i]?.attrs?.value?.toLocaleLowerCase(),
+                        station:
+                            closedSationArr[
+                                i
+                            ]?.attrs?.value?.toLocaleLowerCase(),
+                        statusTime: {
+                            hours: arrivedTimeSplit[0],
+                            minutes: arrivedTimeSplit[1],
+                        },
+                        delayedTime: {
+                            hours: lateTimeSplit[0],
+                            minutes: lateTimeSplit[1],
+                        },
+                        type,
+                        direction: trainDirectionArr[i]?.attrs?.value
+                            ?.trim()
+                            .toLocaleLowerCase(),
+                    },
                 };
-            });
+            },
+            {}
+        );
 
-            await browser.close();
-            if (env.DEBUG)
-                console.log(
-                    `${SCRIPT_NAME}: Updated trains count: ${response.count_trains}`
-                );
+        data = {
+            lastFetchedAt: currentTimeStamp,
+            lastUpdateAtUpstream: timeStamp,
+            count_trains: Object.keys(trains).length,
+            trains,
+        };
 
-            return response;
-        })();
+        if (env.DEBUG)
+            console.log(
+                `${SCRIPT_NAME}: Updated trains count: ${data.count_trains}`
+            );
     } catch (e) {
         console.log(`# ERROR in ${SCRIPT_NAME}: ${e}`);
         if (env.DEBUG) {
@@ -193,22 +166,20 @@ export default async (req, res) => {
         return;
     }
 
-    const client = createClient();
-    await client.connect();
+    // const client = createClient();
+    // await client.connect();
 
-    try {
-        const query = `UPDATE ${
-            env.DB.TABLE_NAME
-        } SET VAL = '${prepareJsonForDb(data)}' WHERE KEY = '${
-            env.DB.ROW_TRAINS
-        }';`;
-        await client.query(query);
-    } catch (e) {
-        handleDBError(res, e);
-        return;
-    }
+    // try {
+    //     const query = `UPDATE ${
+    //         env.DB.TABLE_NAME
+    //     } SET VAL = '${prepareJsonForDb(data)}' WHERE KEY = '${
+    //         env.DB.ROW_TRAINS
+    //     }';`;
+    //     await client.query(query);
+    // } catch (e) {
+    //     handleDBError(res, e);
+    //     return;
+    // }
 
-    const response = { count_trains: data.count_trains, success: true };
-    Object.keys(response).forEach((key) => res.setHeader(key, response[key]));
-    res.send(response);
+    res.send({ count_trains: data.count_trains, success: true });
 };
