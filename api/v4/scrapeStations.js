@@ -6,7 +6,7 @@ import {
     handleUnauthorizedRequest,
     handleDBError,
 } from "../_utils.js";
-import { fetchDbToken } from "./_dbGenerateToken.js";
+import { writeToDb } from "./_dbUtils.js";
 
 const jss = JSSoup.default;
 
@@ -121,41 +121,10 @@ export default async (req, res) => {
     }
 
     try {
-        const tokenFetcherResp = await fetchDbToken().catch((e) =>
-            console.log(e)
-        );
-
-        if (!tokenFetcherResp.success)
-            return res.status(500).send({
-                msg: tokenFetcherResp.msg,
-                success: false,
-            });
-
-        const db_token = tokenFetcherResp.token;
-
-        await fetch(`${env.DB.FIREBASE_REALTIME_DATABASE_URL}/stations.json`, {
-            method: "PUT",
-            headers: {
-                "Authorization": `Bearer ${db_token}`,
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify(data),
-        })
-            .then((r) => r.json())
-            .then((dbResponse) => {
-                if (Object.keys(dbResponse).includes("error"))
-                    res.status(500).send({
-                        dbResponse,
-                        msg: `# ERROR in ${SCRIPT_NAME}: DB auth failed`,
-                        count: data.count,
-                        success: false,
-                    });
-                else
-                    res.send({
-                        count: data.count,
-                        success: true,
-                    });
-            });
+        const dbResp = await writeToDb(SCRIPT_NAME, "stations", data);
+        dbResp?.success
+            ? res.send({ ...dbResp })
+            : res.status(500).send({ ...dbResp });
     } catch (e) {
         handleDBError(res, e);
         return;
