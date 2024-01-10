@@ -48,6 +48,7 @@ Additionally the version 2 API is available at `/api/v2`, for e.g. `/api/v2/fetc
     ```
     npm run dev
     ```
+-   Visit the site at the displayed URL
 
 ### Vercel Deployment
 
@@ -56,7 +57,12 @@ Additionally the version 2 API is available at `/api/v2`, for e.g. `/api/v2/fetc
     -   Create team
     -   Click on the "Storage" tab and [create a Postgres database](https://vercel.com/docs/storage/vercel-postgres/quickstart)
     -   Generate a secret UUIDv4 token and add it as an environment variable in the "Environment Variables" settings page with the key name as `SECRET_UPSTREAM_UPDATE`
-    -   Go to the Webhook settings located at vercel[.]com/teams/&lt;your-team-name&gt;/settings/webhooks and add a webhook for the `deployment.succeeded` event for this URL: `/api/v4/scrapeStations?token=<YOUR-SECRET_UPSTREAM_UPDATE-TOKEN>`
+    -   Go to the Webhook settings located at `vercel[.]com/teams/<your-team-name>/settings/webhooks` and add a webhook for the `deployment.succeeded` event for this URL: `/api/v4/scrapeStations?token=<YOUR-SECRET_UPSTREAM_UPDATE-TOKEN>`
+-   Google Firebase Setup
+    -   Create a new project and then create a new Firebase Realtime Database at https://console.firebase.google.com/
+        -   Set the permissions to private as we shall be using [Google OAuth](https://firebase.google.com/docs/database/rest/auth) to connect to the database
+    -   Generate a new config JSON file at `https://console.firebase.google.com/project/<YOUR_PROJECT_NAME>/settings/serviceaccounts/adminsdk`
+    -   Create a `_dbSecrets.js` file in `api/v4` using [`api/\_dbSecrets.js.example`](api/_dbSecrets.js.example) as a template and fill in the `private_key` and `client_email` from the JSON file obtained in the previous step
 -   Install dependencies
     ```
     npm install
@@ -73,7 +79,8 @@ Additionally the version 2 API is available at `/api/v2`, for e.g. `/api/v2/fetc
     ```
     vercel --prod
     ```
--   Configure a web service to periodically ping the `/api/v4/scrapeTrains?token=<YOUR-SECRET_UPSTREAM_UPDATE-TOKEN>` endpoint to trigger an upstream update
+-   Visit the site at the displayed URL
+-   Configure a web service / cron job to periodically ping the `/api/v4/scrapeTrains?token=<YOUR-SECRET_UPSTREAM_UPDATE-TOKEN>` endpoint to trigger an upstream update
 
 ## TODO
 
