@@ -1,7 +1,7 @@
 import playwright from "playwright-aws-lambda";
 import { devices } from "playwright-core";
 import { createClient } from "@vercel/postgres";
-import env from "../_constants.js";
+import env from "./_constants.js";
 import {
     authCheckScraper,
     handleUnauthorizedRequest,
@@ -182,10 +182,13 @@ export default async (req, res) => {
         })();
     } catch (e) {
         console.log(`# ERROR in ${SCRIPT_NAME}: ${e}`);
-        if (env.DEBUG) res.send({ error: e, success: false });
-        else {
-            res.status(500);
-            res.send({ message: env.SERVER_ERROR_MESSAGE, success: false });
+        if (env.DEBUG) {
+            res.status(500).json({ error: e, success: false });
+        } else {
+            res.status(500).json({
+                message: `${env.SERVER_ERROR_MESSAGE}/${SCRIPT_NAME}`,
+                success: false,
+            });
         }
         return;
     }
