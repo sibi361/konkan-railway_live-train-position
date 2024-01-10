@@ -5,7 +5,14 @@ import { handleDBError } from "../../_utils.js";
 const SCRIPT_NAME = "fetchStation";
 
 export default async (req, res) => {
-    const stationName = req.query.fetchStationSlug?.toLocaleLowerCase();
+    const stationName = req.query.fetchStationSlug
+        .toLocaleLowerCase()
+        .replaceAll("$", "-")
+        .replaceAll("#", "-")
+        .replaceAll("[", "-")
+        .replaceAll("]", "-")
+        .replaceAll("/", "-")
+        .replaceAll(".", "-");
 
     let stationsData;
     try {

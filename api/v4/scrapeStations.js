@@ -69,6 +69,14 @@ export default async (req, res) => {
         ///////////////////
 
         const stations = stArr.reduce((obj, stName, i) => {
+            const name = stName
+                .replaceAll("$", "-")
+                .replaceAll("#", "-")
+                .replaceAll("[", "-")
+                .replaceAll("]", "-")
+                .replaceAll("/", "-")
+                .replaceAll(".", "-");
+
             const stateValue = stationStateArr[i]?.attrs?.value
                 ?.trim()
                 .toLocaleLowerCase();
@@ -90,7 +98,7 @@ export default async (req, res) => {
 
             return {
                 ...obj,
-                [stName]: {
+                [name]: {
                     type: stationTypeArr[i]?.attrs?.value
                         ?.trim()
                         .toLocaleLowerCase(),

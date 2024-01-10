@@ -5,14 +5,13 @@ import { handleDBError } from "../../_utils.js";
 const SCRIPT_NAME = "fetchTrain";
 
 export default async (req, res) => {
-    const trainNo = req.query.fetchTrainSlug;
-
-    //
-    if (!env.TRAIN_NUMBER_REGEX.test(trainNo))
-        return res.status(400).send({
-            message: `Error: Train number is invalid.`,
-            success: false,
-        });
+    const trainNo = req.query.fetchTrainSlug
+        .replaceAll("$", "-")
+        .replaceAll("#", "-")
+        .replaceAll("[", "-")
+        .replaceAll("]", "-")
+        .replaceAll("/", "-")
+        .replaceAll(".", "-");
 
     let trainsData;
     try {

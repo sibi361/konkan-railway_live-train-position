@@ -83,7 +83,13 @@ export default async (req, res) => {
         const trains = Array.from(trainDataArr).reduce(
             (trains, trainData, i) => {
                 const trainDataSplit = trainData?.attrs?.value?.split(" ");
-                const number = trainDataSplit[0];
+                const number = trainDataSplit[0]
+                    .replaceAll("$", "-")
+                    .replaceAll("#", "-")
+                    .replaceAll("[", "-")
+                    .replaceAll("]", "-")
+                    .replaceAll("/", "-")
+                    .replaceAll(".", "-");
                 const name = trainDataSplit.slice(1, -2).join(" ");
                 const arrivedTimeSplit =
                     arrivedTimeArr[i]?.attrs?.value?.split(":");
