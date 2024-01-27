@@ -22,20 +22,21 @@ export default async (req, res) => {
         return;
     }
 
-    const keys = Object.keys(stationsData?.stations);
+    const stations = stationsData?.stations;
 
     if (env.DEBUG)
         console.log(`${SCRIPT_NAME}: Fetching station: ${stationName}`);
 
-    const key = keys.find((station) =>
-        station.toLocaleLowerCase().includes(stationName)
+    const data = stations.find((station) =>
+        station.name.toLocaleLowerCase().includes(stationName)
     );
-    if (key)
+
+    if (data) {
         res.send({
-            [key]: stationsData.stations[key],
+            data,
             success: true,
         });
-    else {
+    } else {
         res.status(404);
         res.send({
             message: `Error: Station named "${stationName}" NOT found.`,
