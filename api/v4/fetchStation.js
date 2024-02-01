@@ -13,13 +13,13 @@ export default async (req, res) => {
         return;
     }
 
-    const keys = Object.keys(stationsData?.stations);
+    const stations = stationsData?.stations;
+    const exampleStationName =
+        stations[Math.floor(Math.random() * stations?.length)]?.name;
 
     res.status(400).json({
         message: "Error: Station name parameter not provided",
-        example: `https://${req.headers?.host}/api/v${
-            env.API_VERSION
-        }/${SCRIPT_NAME}/${keys[Math.floor(Math.random() * keys.length)]}`,
+        example: `https://${req.headers?.host}/api/v${env.API_VERSION}/${SCRIPT_NAME}/${exampleStationName}`,
         success: false,
     });
 };

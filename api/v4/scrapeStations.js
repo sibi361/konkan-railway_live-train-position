@@ -96,9 +96,10 @@ export default async (req, res) => {
                     state = stateValue;
             }
 
-            return {
+            return [
                 ...obj,
-                [name]: {
+                {
+                    name,
                     type: stationTypeArr[i]?.attrs?.value
                         ?.trim()
                         .toLocaleLowerCase(),
@@ -106,8 +107,8 @@ export default async (req, res) => {
                     description: stationDescriptionArr[i]?.attrs?.value?.trim(),
                     distance: distanceArr[i]?.attrs?.value?.trim(),
                 },
-            };
-        }, {});
+            ];
+        }, []);
 
         ///////////////////
 
