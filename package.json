@@ -16,7 +16,8 @@
         "playwright-aws-lambda": "^0.10.0",
         "playwright-core": "^1.38.1",
         "react": "^18.2.0",
-        "react-dom": "^18.2.0"
+        "react-dom": "^18.2.0",
+        "undici": "^7.3.0"
     },
     "devDependencies": {
         "@types/react": "^18.2.15",
