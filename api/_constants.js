@@ -8,6 +8,7 @@ const env = {
   SERVER_ERROR_MESSAGE:
     "Server overloaded. Please wait or use the non-cached endpoint available at /api/v2",
   UNAUTHORIZED_ERROR_MESSAGE: "Unauthorized request: Token not supplied",
+  HISTORY_MAX_RECORDS_ALLOWED: process.env.HISTORY_MAX_RECORDS_ALLOWED ?? "50",
 };
 
 env.DB = {

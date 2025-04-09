@@ -63,39 +63,121 @@ export const writeToMongoDb = async (script_name, scrapedData) => {
   }
 };
 
-// export const readFromDb = async (script_name, path) => {
-//     const tokenFetcherResp = await fetchDbToken().catch((e) =>
-//         console.log(`# DB Auth Error: ${e}`)
-//     );
+const DAYS_OF_WEEK = [
+  "sunday",
+  "monday",
+  "tuesday",
+  "wednesday",
+  "thursday",
+  "friday",
+  "saturday",
+];
 
-//     if (!tokenFetcherResp.success)
-//         return {
-//             msg: tokenFetcherResp.msg,
-//             success: false,
-//         };
+export const readFromMongoDb = async (
+  script_name,
+  trainNo,
+  station,
+  dayOfWeek,
+  status = undefined,
+  limit = 7
+) => {
+  try {
+    await connectToDb();
 
-//     const db_token = tokenFetcherResp.token;
+    const dayOfWeekNum =
+      DAYS_OF_WEEK.findIndex((day) => day === dayOfWeek.toLowerCase()) + 1;
 
-//     return await fetch(
-//         `${env.DB.FIREBASE_REALTIME_DATABASE_URL}/${path}.json`,
-//         {
-//             headers: {
-//                 Authorization: `Bearer ${db_token}`,
-//             },
-//         }
-//     )
-//         .then((r) => r.json())
-//         .then((dbResponse) => {
-//             if (Object.keys(dbResponse).includes("error"))
-//                 return {
-//                     dbResponse,
-//                     msg: `# ERROR in ${script_name}: DB connection failed`,
-//                     success: false,
-//                 };
-//             else
-//                 return {
-//                     ...dbResponse,
-//                     success: true,
-//                 };
-//         });
-// };
+    const startOfDay = new Date();
+    startOfDay.setHours(0, 0, 0, 0);
+    const endOfDay = new Date();
+    endOfDay.setHours(23, 59, 59, 999);
+
+    const documents = await Trains.aggregate([
+      {
+        $match: {
+          trains: {
+            $elemMatch: status
+              ? {
+                  trainNo,
+                  station,
+                  status,
+                }
+              : {
+                  trainNo,
+                  station,
+                },
+          },
+          ...(dayOfWeekNum
+            ? {
+                $expr: {
+                  $eq: [{ $dayOfWeek: "$createdAt" }, dayOfWeekNum],
+                },
+              }
+            : {}),
+        },
+      },
+      {
+        $sort: {
+          _id: -1,
+        },
+      },
+      {
+        $limit: limit,
+      },
+      {
+        $project: {
+          _id: 0,
+          count: 1,
+          createdAt: 1,
+          train: {
+            $arrayElemAt: [
+              {
+                $filter: {
+                  input: "$trains",
+                  as: "train",
+                  cond: {
+                    $and: [
+                      { $eq: ["$$train.trainNo", trainNo] },
+                      { $eq: ["$$train.station", station] },
+                    ],
+                  },
+                },
+              },
+              0,
+            ],
+          },
+        },
+      },
+    ]);
+
+    return {
+      success: true,
+      data: removeDuplicateTrains(documents),
+    };
+  } catch (error) {
+    console.error(`# Mongo Error: ${error}`);
+    return {
+      msg: `# ERROR in ${script_name}: DB connection failed`,
+      success: false,
+    };
+  }
+};
+
+export function removeDuplicateTrains(data) {
+  const seenTrainKeys = new Set();
+  const filteredData = [];
+
+  data.forEach((item) => {
+    const creationDate = new Date(item.createdAt);
+    const creationDateString = creationDate.toISOString().split("T")[0]; // Get only the date part
+
+    const trainKey = `${creationDateString}-${item.train.trainNo}-${item.train.station}-${item.train.statusTime.hours}-${item.train.statusTime.minutes}`;
+
+    if (!seenTrainKeys.has(trainKey)) {
+      seenTrainKeys.add(trainKey);
+      filteredData.push(item);
+    }
+  });
+
+  return filteredData;
+}
