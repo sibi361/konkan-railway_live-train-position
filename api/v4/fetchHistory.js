@@ -21,7 +21,7 @@ export default async (req, res) => {
     const dbResp = await readFromMongoDb(
       SCRIPT_NAME,
       trainNo.trim(),
-      station.trim(),
+      station.trim().toLowerCase(),
       dayOfWeek?.trim(),
       status?.trim(),
       limitParsed
