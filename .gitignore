@@ -29,3 +29,4 @@ dist-ssr
 scripts/
 .vercel
 _dbSecrets.js
+.env*.local

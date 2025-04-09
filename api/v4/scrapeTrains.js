@@ -9,6 +9,7 @@ import {
   handleDBError,
 } from "../_utils.js";
 import { writeToDb } from "./_dbUtils.js";
+import { writeToMongoDb } from "./_mongoUtils.js";
 
 const jss = JSSoup.default;
 
@@ -173,6 +174,8 @@ export default async (req, res) => {
   }
 
   try {
+    await writeToMongoDb(SCRIPT_NAME, data);
+
     const dbResp = await writeToDb(SCRIPT_NAME, "trains", data);
     dbResp?.success
       ? res.send({ ...dbResp })

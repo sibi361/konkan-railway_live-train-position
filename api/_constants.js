@@ -13,6 +13,7 @@ const env = {
 env.DB = {
   FIREBASE_REALTIME_DATABASE_URL:
     "https://kr-api-v4-default-rtdb.asia-southeast1.firebasedatabase.app",
+  MONGODB_URI: process.env.MONGODB_URI,
 };
 
 env.VERCEL_ENVS = {
