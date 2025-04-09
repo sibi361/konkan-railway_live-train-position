@@ -85,7 +85,7 @@ export const readFromMongoDb = async (
     await connectToDb();
 
     const dayOfWeekNum =
-      DAYS_OF_WEEK.findIndex((day) => day === dayOfWeek.toLowerCase()) + 1;
+      DAYS_OF_WEEK.findIndex((day) => day === dayOfWeek?.toLowerCase()) + 1;
 
     const startOfDay = new Date();
     startOfDay.setHours(0, 0, 0, 0);

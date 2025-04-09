@@ -9,12 +9,12 @@ export default async (req, res) => {
     const { trainNo, station, dayOfWeek, status, limit } = req.query;
 
     if (!trainNo || !station) {
-      return res.status(400).send({ msg: "Missing required parameters." });
+      return res.status(400).send({ msg: "trainNo and station are mandatory" });
     }
 
     const maxLimitParsed = parseInt(env.HISTORY_MAX_RECORDS_ALLOWED);
     let limitParsed = parseInt(limit);
-    if (limitParsed > maxLimitParsed) {
+    if (limitParsed > maxLimitParsed || isNaN(limitParsed)) {
       limitParsed = maxLimitParsed;
     }
 
@@ -22,8 +22,8 @@ export default async (req, res) => {
       SCRIPT_NAME,
       trainNo.trim(),
       station.trim(),
-      dayOfWeek.trim(),
-      status.trim(),
+      dayOfWeek?.trim(),
+      status?.trim(),
       limitParsed
     );
 
