@@ -127,7 +127,7 @@ export default async (req, res) => {
           type = "Goods";
           break;
         default:
-          type = typeValue;
+          type = "UNKNOWN";
       }
       return {
         ...trains,
